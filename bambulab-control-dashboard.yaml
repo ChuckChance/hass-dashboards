@@ -1,0 +1,907 @@
+views:
+  - type: sections
+    max_columns: 3
+    title: P1S
+    path: p1s
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading_style: subtitle
+            badges:
+              - type: entity
+                show_state: false
+                show_icon: true
+                entity: sensor.p1s_etape_actuelle
+                color: '#ff000000'
+          - type: custom:mushroom-template-card
+            primary: >-
+              Printer State: {{
+              state_translated("binary_sensor.p1s_erreur_d_impression") }}
+            secondary: >-
+              Error Code: {{ state_attr("binary_sensor.p1s_erreur_d_impression",
+              "code")|replace("_", "-") }}
+
+              {% if state_attr("binary_sensor.p1s_erreur_d_impression", "error")
+              != None and  state_attr("binary_sensor.p1s_erreur_d_impression",
+              "error") != "" %}
+
+              ({{ state_attr("binary_sensor.p1s_erreur_d_impression", "error")
+              }})
+
+              {% endif %}
+            icon: mdi:information-slab-circle
+            entity: binary_sensor.p1s_erreur_d_impression
+            icon_color: red
+            fill_container: true
+            grid_options:
+              columns: full
+            visibility:
+              - condition: state
+                entity: binary_sensor.p1s_erreur_d_impression
+                state_not: 'off'
+            tap_action:
+              action: more-info
+          - type: custom:mushroom-template-card
+            primary: 'HMS State: {{ state_translated("binary_sensor.p1s_erreurs_hms") }}'
+            secondary: >-
+              Error Code: {{ state_attr("binary_sensor.p1s_erreurs_hms",
+              "1-Code")|replace("_", "-") }}
+
+              {% if state_attr("binary_sensor.p1s_erreurs_hms", "1-Error") !=
+              None 
+                and state_attr("binary_sensor.p1s_erreurs_hms", "error") != "" 
+                and state_attr("binary_sensor.p1s_erreurs_hms", "error") != "unknown" %}
+              ({{ state_attr("binary_sensor.p1s_erreurs_hms", "error") }})
+
+              {% endif %}
+            icon: mdi:information-slab-circle
+            entity: binary_sensor.p1s_erreurs_hms
+            icon_color: red
+            fill_container: true
+            grid_options:
+              columns: full
+            visibility:
+              - condition: state
+                entity: binary_sensor.p1s_erreurs_hms
+                state_not: 'off'
+            tap_action:
+              action: more-info
+        column_span: 3
+      - type: grid
+        cards:
+          - type: heading
+            icon: mdi:printer-3d
+            heading_style: subtitle
+            heading: Printer
+            badges:
+              - type: entity
+                show_state: true
+                show_icon: true
+                entity: light.p1s_lumiere_de_la_chambre
+                tap_action:
+                  action: toggle
+                name: Light
+                state_content:
+                  - name
+                  - state
+                color: state
+              - type: entity
+                show_state: true
+                show_icon: true
+                entity: sensor.p1s_etape_actuelle
+                icon: mdi:printer-3d
+                color: state
+          - show_state: false
+            show_name: true
+            camera_view: auto
+            type: picture-entity
+            entity: camera.p1s_camera
+          - type: picture
+            image_entity: image.p1s_image_de_couverture
+            grid_options:
+              columns: 6
+              rows: 4
+            card_mod:
+              style: |
+                ha-card {
+                  align-content: center;
+                  background: linear-gradient(#999999, #111111);
+                  //background: url('data:image/svg+xml;utf8,<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 4 4"><rect width="5" height="5" fill="%23ffffff50" /><path d="M0,0V5H1V0zM2,0V5H3V0zM4,0V5H5V0zM0,0H5V1H0zM0,2H5V3H0zM0,4H5V5H0z" fill="%23aaaaaa50" fill-rule="evenodd"/></svg>');
+
+                }
+                img {
+                  filter: drop-shadow(0px 5px 2px #00000055);
+                }
+          - type: custom:stack-in-card
+            horizontal: true
+            cards:
+              - type: markdown
+                content: >
+                  <div><font size="5">{{
+                  states.sensor.p1s_nom_de_la_tache.state[:60]}}</font></div>
+
+                  <table width=100%><tr><td align=left>Printed layers<td
+                  align=right><font color=#77fc54 ; size="4">{{
+                  states.sensor.p1s_couche_actuelle.state}}</font>/{{states.sensor.p1s_nombre_total_de_couches.state}}</td></tr></table>
+                  <table width=100%><tr> <td align=left><font
+                  size="5";color=#77fc54>{{
+                  states.sensor.p1s_progression_de_l_impression.state}}%<td
+                  align=right>    {% if (states.sensor.p1s_temps_restant.state |
+                  int) == 0 %}
+                    Success  
+                  {% else %}
+                    <font color=#959595>-{{(states.sensor.p1s_temps_restant.state | int/60) | int  }}h{{ states.sensor.p1s_temps_restant.state| int % 60 }}m 
+                  {% endif %} </td> </tr></table>
+                card_mod:
+                  style:
+                    .: |
+                      ha-card {
+                        position: absolute;
+                        top: 0px;
+                      }
+                    ha-markdown:
+                      $: |
+                        div {
+                          height: 135px;
+                          overflow: hidden;
+                          word-break: break-words;
+                          hyphens: auto!important;
+                          hyphenate-character: " ";
+
+                        }
+                grid_options:
+                  columns: 6
+                  rows: 3
+              - type: custom:entity-progress-card
+                entity: sensor.p1s_progression_de_l_impression
+                unit: '%'
+                show_more_info: false
+                bar_size: small
+                bar_color: var(--green-color)
+                layout: horizontal
+                icon: none
+                hide:
+                  - icon
+                  - name
+                  - secondary_info
+                grid_options:
+                  columns: 6
+                  rows: 1
+            card_mod:
+              style: |
+                ha-card {
+                  height: 100%;
+                  align-content: end;
+                }
+            grid_options:
+              columns: 6
+              rows: 4
+          - type: custom:ha-bambulab-print_control-card
+            grid_options:
+              columns: full
+              rows: auto
+            printer: 495f3417712cc1a34ed233ff296e4714
+            card_mod:
+              style: |
+                div.control-container {
+                  width: 100%;
+                  overflow: hidden;
+                }
+                div.buttons-container {
+                  gap: 0px
+                }
+          - type: custom:mushroom-fan-card
+            entity: fan.p1s_ventilateur_de_la_chambre
+            name: Chamber
+            grid_options:
+              columns: 4
+              rows: 1
+            tap_action:
+              action: more-info
+            icon_animation: true
+          - type: custom:mushroom-fan-card
+            entity: fan.p1s_ventilateur_auxiliaire
+            name: Aux
+            grid_options:
+              columns: 4
+              rows: 1
+            tap_action:
+              action: more-info
+            icon_animation: true
+          - type: custom:mushroom-fan-card
+            entity: fan.p1s_ventilateur_de_refroidissement
+            name: Cooling
+            grid_options:
+              columns: 4
+              rows: 1
+            tap_action:
+              action: more-info
+            icon_animation: true
+      - type: grid
+        cards:
+          - type: heading
+            icon: mdi:camera-control
+            heading_style: subtitle
+            badges: []
+            heading: Status
+          - show_name: true
+            show_icon: true
+            show_state: true
+            type: glance
+            entities:
+              - entity: sensor.p1s_temperature_de_la_buse
+                icon: mdi:printer-3d-nozzle-heat
+                name: Nozzle
+              - entity: sensor.p1s_temperature_du_lit
+                icon: mdi:train-car-flatbed
+                name: Print Bed
+              - entity: sensor.p1s_profil_de_vitesse
+                name: Speed
+                icon: mdi:window-close
+            state_color: false
+            card_mod:
+              style: |
+                ha-card {
+                  font-size: 12px;
+                  height: 100%
+                }
+                ha-card.type-glance .entities {
+                  align-items: flex-start !important;
+                }
+          - type: heading
+            heading: Ext. Spool
+            heading_style: subtitle
+            grid_options:
+              columns: 3
+            icon: mdi:alpha-e-box
+          - type: heading
+            heading: AMS
+            heading_style: subtitle
+            grid_options:
+              columns: 9
+            badges:
+              - type: entity
+                show_state: true
+                show_icon: true
+                entity: sensor.p1s_ams_indice_d_humidite
+                tap_action:
+                  action: more-info
+            icon: mdi:alpha-a-box
+            tap_action:
+              action: perform-action
+              perform_action: input_boolean.toggle
+              target:
+                entity_id: input_boolean.enable_ha_bambulab_ams_spool_cards
+          - type: custom:ha-bambulab-spool-card
+            header: Header Text
+            subtitle: Subtitle Text
+            show_header: true
+            show_type: true
+            spool: ca2c4493b89dca5b577520c7dcb06053
+            card_mod:
+              style:
+                .: |
+                  ha-card {
+                    background: var(--ha-card-background, var(--card-background-color, #fff));
+                    -webkit-backdrop-filter: var(--ha-card-backdrop-filter, none);
+                    backdrop-filter: var(--ha-card-backdrop-filter, none);
+                    box-shadow: var(--ha-card-box-shadow, none);
+                    box-sizing: border-box;
+                    border-radius: var(--ha-card-border-radius, 12px);
+                    border-width: var(--ha-card-border-width, 1px);
+                    border-style: solid;
+                    border-color: var(--ha-card-border-color, var(--divider-color, #e0e0e0));
+                    color: var(--primary-text-color);
+                    display: block;
+                    transition: all .3sease-out;
+                    position: relative;
+                  }
+                  ha-bambulab-spool {
+                    xbackground-color: red!important;
+                    margin: 5px;
+                  }
+                ha-bambulab-spool $ ams-popup: |
+                  div.ha-bambulab-spool-card-container {
+                      xbackground-color: cyan;
+                  }      
+                  div.ha-bambulab-spool-card-holder {
+                      border: 7px solid rgba(0,0,0,0) !important;
+                      background: none !important;
+                  }   
+                  div.ha-bambulab-spool-container {
+                    border: 2px solid rgba(0,0,0,0);
+                    
+                  }
+
+                  div.ha-bambulab-spool-card-holder {
+                    width: 62px;
+                    margin-left: auto;
+                    margin-right: auto;
+                  }
+
+                  div.ha-bambulab-spool-info {
+                      background: none;
+                      font-weight: 500;
+                      font-size: 12px;
+                      line-height: 16px;
+                      color: var(--card-primary-color);
+                      letter-spacing: 0.1px;
+                      text-overflow: ellipsis;
+                      overflow: hidden;
+                  }
+                  div.v-string-roll {
+                    xbackground-image: url('data:image/svg+xml;utf8,<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 4 4"><rect width="5" height="5" fill="%23ffffff50" /><path d="M0,0V5H1V0zM2,0V5H3V0zM4,0V5H5V0zM0,0H5V1H0zM0,2H5V3H0zM0,4H5V5H0z" fill="%23aaaaaa50" fill-rule="evenodd"/></svg>') !important;
+                  }
+
+                  div.v-string-layer {
+                    background-color: rgba(0, 0, 0, 0.1);
+                  }
+          - type: horizontal-stack
+            cards:
+              - type: custom:ha-bambulab-ams-card
+                entity: ''
+                header: ''
+                subtitle: ''
+                style: vector
+                show_type: true
+                show_info_bar: false
+                ams: bc2516bd6f9991477e80513778b105dc
+                card_mod:
+                  style:
+                    .: |
+                      ha-card {
+                        background: var(--ha-card-background, var(--card-background-color, #fff));
+                        -webkit-backdrop-filter: var(--ha-card-backdrop-filter, none);
+                        backdrop-filter: var(--ha-card-backdrop-filter, none);
+                        box-shadow: var(--ha-card-box-shadow, none);
+                        box-sizing: border-box;
+                        border-radius: var(--ha-card-border-radius, 12px);
+                        border-width: var(--ha-card-border-width, 1px);
+                        border-style: solid;
+                        border-color: var(--ha-card-border-color, var(--divider-color, #e0e0e0));
+                        color: var(--primary-text-color);
+                        display: block;
+                        transition: all .3sease-out;
+                        position: relative;
+                      }
+                      ha-bambulab-spool {
+                        padding: 0px 0px !important;
+                      }
+                    ha-bambulab-spool $:
+                      ams-popup: |
+                        div.ha-bambulab-spool-card-container {
+                            xbackground-color: cyan;
+                        }      
+                        div.ha-bambulab-spool-card-holder {
+                            border: 7px solid rgba(0,0,0,0) !important;
+                            background: none !important;
+                        }   
+                        div.ha-bambulab-spool-container {
+                          border: 2px solid rgba(0,0,0,0);
+                        }
+
+                        div.ha-bambulab-spool-card-holder {
+                          width: 62px;
+                          margin-left: auto;
+                          margin-right: auto;
+                        }
+
+                        div.ha-bambulab-spool-info {
+                          background: none;
+                          font-weight: 500;
+                          font-size: 12px;
+                          line-height: 16px;
+                          color: var(--card-primary-color);
+                          letter-spacing: 0.1px;
+                          text-overflow: ellipsis;
+                          overflow: hidden;
+                        }
+                        div.v-string-roll {
+                          xbackground-image: url('data:image/svg+xml;utf8,<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 4 4"><rect width="5" height="5" fill="%23ffffff50" /><path d="M0,0V5H1V0zM2,0V5H3V0zM4,0V5H5V0zM0,0H5V1H0zM0,2H5V3H0zM0,4H5V5H0z" fill="%23aaaaaa50" fill-rule="evenodd"/></svg>') !important;
+                        }
+
+                        div.v-string-layer {
+                          background-color: rgba(0, 0, 0, 0.1);
+                        }
+            grid_options:
+              columns: 9
+              rows: 3
+          - type: custom:stack-in-card
+            mode: horizontal
+            keep:
+              outer_padding: true;
+            cards:
+              - type: custom:mushroom-template-card
+                entity: sensor.p1s_externalspool_bobine_externe
+                primary: >
+                  {% if states(config.entity) in [ "", "unknown" ] %}Unknown {{
+                  state_attr(config.entity, 'type') }}{% else %}{{
+                  state_translated(config.entity) }}{% endif %}
+                secondary: |
+                  {% if state_attr(config.entity, 'remain') > -1 %}{{ 
+                  state_attr(config.entity, 'remain') }}%{% endif %}
+                icon: >
+                  {% if is_state_attr(config.entity, "active", true) %}
+
+                  mdi:printer-3d-nozzle
+
+                  {% elif is_state_attr(config.entity, 'empty', true) or
+                  is_state_attr(config.entity, 'name', "") or 
+                  is_state_attr(config.entity, 'color', "#00000000") %}
+
+                  mdi:help
+
+                  {% else %}
+
+                  mdi:
+
+                  {% endif %}
+                layout: vertical
+                multiline_secondary: true
+                tap_action:
+                  action: more-info
+                card_mod:
+                  style:
+                    .: |
+                      ha-card { height: 140px !important; }
+                      mushroom-card { }
+                    mushroom-state-item$: |
+                      div.container {  justify-content: normal; }
+                    mushroom-state-info$: |
+                      .primary {
+                        white-space: pre-wrap!important;
+                        height: 60px;
+                        font-size: var(--card-secondary-font-size)!important;
+                        line-height: var(--card-secondary-line-height)!important;
+                      }
+                    mushroom-shape-icon$: |
+                      .shape {
+                        --filament-color: {{ state_attr(config.entity, 'color') }};
+                        display: flex;
+                        box-shadow: 0 0 0 5px var(--shape-color) !important;
+                        {% if is_state_attr(config.entity, 'empty', true) or is_state_attr(config.entity, 'name', "") or is_state_attr(config.entity, 'color', "#00000000") %}
+                        background: url('data:image/svg+xml;utf8,<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 4 4"><rect width="5" height="5" fill="%23ffffff50" /><path d="M0,0V5H1V0zM2,0V5H3V0zM4,0V5H5V0zM0,0H5V1H0zM0,2H5V3H0zM0,4H5V5H0z" fill="%23aaaaaa50" fill-rule="evenodd"/></svg>');
+                        background-color: white!important;
+                        --icon-color: white;
+                        {% else %}
+                        background-color: var(--filament-color)!important;
+                        --icon-color: var(--filament-color);
+                        {% endif %}
+                        border-radius: 50% !important;            
+                      }
+                    ha-state-icon$: |
+                      @keyframes shake {
+                        50% {
+                          transform: translate3d(4px, 0, 0);
+                        }
+                      }
+                      ha-icon {
+                        {% if is_state_attr(config.entity, "active", true) %}
+                        animation: shake 0.2s infinite linear;
+                        {% endif %}
+                        filter: invert(1) grayscale(1) brightness(500%) opacity(0.5);
+                      }
+            grid_options:
+              columns: 3
+              rows: auto
+          - type: custom:stack-in-card
+            mode: horizontal
+            keep:
+              outer_padding: true;
+            cards:
+              - type: custom:mushroom-template-card
+                entity: sensor.p1s_ams_emplacement_1
+                primary: >
+                  {{ state_translated(config.entity) }}{% if
+                  is_state_attr(config.entity, "name", None) %} {{
+                  state_attr(config.entity, 'type') }}{% endif %}
+                secondary: |
+                  {% if state_attr(config.entity, 'remain') > -1 %}{{ 
+                  state_attr(config.entity, 'remain') }}%{% endif %}
+                icon: |
+                  {% if is_state_attr(config.entity, "active", true) %}
+                  mdi:printer-3d-nozzle
+                  {% elif is_state_attr(config.entity, 'empty', true) %}
+                  mdi:slash-forward
+                  {% elif is_state_attr(config.entity, 'color', "#00000000") %}
+                  mdi:help
+                  {% else %}
+                  mdi:
+                  {% endif %}
+                layout: vertical
+                multiline_secondary: true
+                tap_action:
+                  action: more-info
+                card_mod:
+                  style:
+                    .: |
+                      ha-card { height: 140px !important; }
+                      mushroom-card { }
+                    mushroom-state-item$: |
+                      div.container {  justify-content: normal; }
+                    mushroom-state-info$: |
+                      .primary {
+                        white-space: pre-wrap!important;
+                        height: 60px;
+                        font-size: var(--card-secondary-font-size)!important;
+                        line-height: var(--card-secondary-line-height)!important;
+                      }
+                    mushroom-shape-icon$: |
+                      .shape {
+                        --filament-color: {{ state_attr(config.entity, 'color') }};
+                        display: flex;
+                        box-shadow: 0 0 0 5px var(--shape-color) !important;
+                        {% if is_state_attr(config.entity, 'empty', true) or is_state_attr(config.entity, 'color', "#00000000")  %}
+                        background: url('data:image/svg+xml;utf8,<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 4 4"><rect width="5" height="5" fill="%23ffffff50" /><path d="M0,0V5H1V0zM2,0V5H3V0zM4,0V5H5V0zM0,0H5V1H0zM0,2H5V3H0zM0,4H5V5H0z" fill="%23aaaaaa50" fill-rule="evenodd"/></svg>');
+                        background-color: white!important;
+                        --icon-color: white;
+                        {% else %}
+                        background-color: var(--filament-color)!important;
+                        --icon-color: var(--filament-color);
+                        {% endif %}
+                        border-radius: 50% !important;            
+                      }
+                    ha-state-icon$: |
+                      @keyframes shake {
+                        50% {
+                          transform: translate3d(4px, 0, 0);
+                        }
+                      }
+                      ha-icon {
+                        {% if is_state_attr(config.entity, "active", true) %}
+                        animation: shake 0.2s infinite linear;
+                        {% endif %}
+                        filter: invert(1) grayscale(1) brightness(500%) opacity(0.5);
+                      }
+              - type: custom:mushroom-template-card
+                entity: sensor.p1s_ams_emplacement_2
+                primary: >
+                  {{ state_translated(config.entity) }}{% if
+                  is_state_attr(config.entity, "name", None) %} {{
+                  state_attr(config.entity, 'type') }}{% endif %}
+                secondary: |
+                  {% if state_attr(config.entity, 'remain') > -1 %}{{ 
+                  state_attr(config.entity, 'remain') }}%{% endif %}
+                icon: |
+                  {% if is_state_attr(config.entity, "active", true) %}
+                  mdi:printer-3d-nozzle
+                  {% elif is_state_attr(config.entity, 'empty', true) %}
+                  mdi:slash-forward
+                  {% elif is_state_attr(config.entity, 'color', "#00000000") %}
+                  mdi:help
+                  {% else %}
+                  mdi:
+                  {% endif %}
+                layout: vertical
+                multiline_secondary: true
+                tap_action:
+                  action: more-info
+                card_mod:
+                  style:
+                    .: |
+                      ha-card { height: 140px !important; }
+                      mushroom-card { }
+                    mushroom-state-item$: |
+                      div.container {  justify-content: normal; }
+                    mushroom-state-info$: |
+                      .primary {
+                        white-space: pre-wrap!important;
+                        height: 60px;
+                        font-size: var(--card-secondary-font-size)!important;
+                        line-height: var(--card-secondary-line-height)!important;
+                      }
+                    mushroom-shape-icon$: |
+                      .shape {
+                        --filament-color: {{ state_attr(config.entity, 'color') }};
+                        display: flex;
+                        box-shadow: 0 0 0 5px var(--shape-color) !important;
+                        {% if is_state_attr(config.entity, 'empty', true) or is_state_attr(config.entity, 'color', "#00000000")  %}
+                        background: url('data:image/svg+xml;utf8,<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 4 4"><rect width="5" height="5" fill="%23ffffff50" /><path d="M0,0V5H1V0zM2,0V5H3V0zM4,0V5H5V0zM0,0H5V1H0zM0,2H5V3H0zM0,4H5V5H0z" fill="%23aaaaaa50" fill-rule="evenodd"/></svg>');
+                        background-color: white!important;
+                        --icon-color: white;
+                        {% else %}
+                        background-color: var(--filament-color)!important;
+                        --icon-color: var(--filament-color);
+                        {% endif %}
+                        border-radius: 50% !important;            
+                      }
+                    ha-state-icon$: |
+                      @keyframes shake {
+                        50% {
+                          transform: translate3d(4px, 0, 0);
+                        }
+                      }
+                      ha-icon {
+                        {% if is_state_attr(config.entity, "active", true) %}
+                        animation: shake 0.2s infinite linear;
+                        {% endif %}
+                        filter: invert(1) grayscale(1) brightness(500%) opacity(0.5);
+                      }
+              - type: custom:mushroom-template-card
+                entity: sensor.p1s_ams_emplacement_3
+                primary: >
+                  {{ state_translated(config.entity) }}{% if
+                  is_state_attr(config.entity, "name", None) %} {{
+                  state_attr(config.entity, 'type') }}{% endif %}
+                secondary: |
+                  {% if state_attr(config.entity, 'remain') > -1 %}{{ 
+                  state_attr(config.entity, 'remain') }}%{% endif %}
+                icon: |
+                  {% if is_state_attr(config.entity, "active", true) %}
+                  mdi:printer-3d-nozzle
+                  {% elif is_state_attr(config.entity, 'empty', true) %}
+                  mdi:slash-forward
+                  {% elif is_state_attr(config.entity, 'color', "#00000000") %}
+                  mdi:help
+                  {% else %}
+                  mdi:
+                  {% endif %}
+                layout: vertical
+                multiline_secondary: true
+                tap_action:
+                  action: more-info
+                card_mod:
+                  style:
+                    .: |
+                      ha-card { height: 140px !important; }
+                      mushroom-card { }
+                    mushroom-state-item$: |
+                      div.container {  justify-content: normal; }
+                    mushroom-state-info$: |
+                      .primary {
+                        white-space: pre-wrap!important;
+                        height: 60px;
+                        font-size: var(--card-secondary-font-size)!important;
+                        line-height: var(--card-secondary-line-height)!important;
+                      }
+                    mushroom-shape-icon$: |
+                      .shape {
+                        --filament-color: {{ state_attr(config.entity, 'color') }};
+                        display: flex;
+                        box-shadow: 0 0 0 5px var(--shape-color) !important;
+                        {% if is_state_attr(config.entity, 'empty', true) or is_state_attr(config.entity, 'color', "#00000000")  %}
+                        background: url('data:image/svg+xml;utf8,<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 4 4"><rect width="5" height="5" fill="%23ffffff50" /><path d="M0,0V5H1V0zM2,0V5H3V0zM4,0V5H5V0zM0,0H5V1H0zM0,2H5V3H0zM0,4H5V5H0z" fill="%23aaaaaa50" fill-rule="evenodd"/></svg>');
+                        background-color: white!important;
+                        --icon-color: white;
+                        {% else %}
+                        background-color: var(--filament-color)!important;
+                        --icon-color: var(--filament-color);
+                        {% endif %}
+                        border-radius: 50% !important;            
+                      }
+                    ha-state-icon$: |
+                      @keyframes shake {
+                        50% {
+                          transform: translate3d(4px, 0, 0);
+                        }
+                      }
+                      ha-icon {
+                        {% if is_state_attr(config.entity, "active", true) %}
+                        animation: shake 0.2s infinite linear;
+                        {% endif %}
+                        filter: invert(1) grayscale(1) brightness(500%) opacity(0.5);
+                      }
+              - type: custom:mushroom-template-card
+                entity: sensor.p1s_ams_emplacement_4
+                primary: >
+                  {{ state_translated(config.entity) }}{% if
+                  is_state_attr(config.entity, "name", None) %} {{
+                  state_attr(config.entity, 'type') }}{% endif %}
+                secondary: |
+                  {% if state_attr(config.entity, 'remain') > -1 %}{{ 
+                  state_attr(config.entity, 'remain') }}%{% endif %}
+                icon: |
+                  {% if is_state_attr(config.entity, "active", true) %}
+                  mdi:printer-3d-nozzle
+                  {% elif is_state_attr(config.entity, 'empty', true) %}
+                  mdi:slash-forward
+                  {% elif is_state_attr(config.entity, 'color', "#00000000") %}
+                  mdi:help
+                  {% else %}
+                  mdi:
+                  {% endif %}
+                layout: vertical
+                multiline_secondary: true
+                tap_action:
+                  action: more-info
+                card_mod:
+                  style:
+                    .: |
+                      ha-card { height: 140px !important; }
+                      mushroom-card { }
+                    mushroom-state-item$: |
+                      div.container {  justify-content: normal; }
+                    mushroom-state-info$: |
+                      .primary {
+                        white-space: pre-wrap!important;
+                        height: 60px;
+                        font-size: var(--card-secondary-font-size)!important;
+                        line-height: var(--card-secondary-line-height)!important;
+                      }
+                    mushroom-shape-icon$: |
+                      .shape {
+                        --filament-color: {{ state_attr(config.entity, 'color') }};
+                        display: flex;
+                        box-shadow: 0 0 0 5px var(--shape-color) !important;
+                        {% if is_state_attr(config.entity, 'empty', true) or is_state_attr(config.entity, 'color', "#00000000")  %}
+                        background: url('data:image/svg+xml;utf8,<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 4 4"><rect width="5" height="5" fill="%23ffffff50" /><path d="M0,0V5H1V0zM2,0V5H3V0zM4,0V5H5V0zM0,0H5V1H0zM0,2H5V3H0zM0,4H5V5H0z" fill="%23aaaaaa50" fill-rule="evenodd"/></svg>');
+                        background-color: white!important;
+                        --icon-color: white;
+                        {% else %}
+                        background-color: var(--filament-color)!important;
+                        --icon-color: var(--filament-color);
+                        {% endif %}
+                        border-radius: 50% !important;            
+                      }
+                    ha-state-icon$: |
+                      @keyframes shake {
+                        50% {
+                          transform: translate3d(4px, 0, 0);
+                        }
+                      }
+                      ha-icon {
+                        {% if is_state_attr(config.entity, "active", true) %}
+                        animation: shake 0.2s infinite linear;
+                        {% endif %}
+                        filter: invert(1) grayscale(1) brightness(500%) opacity(0.5);
+                      }
+            grid_options:
+              columns: 9
+              rows: auto
+          - type: heading
+            icon: fas:temperature-half
+            heading: Temperatures
+            heading_style: subtitle
+          - type: custom:mini-graph-card
+            name: Nozzle Temp.
+            line_width: 7
+            font_size: 60
+            animate: true
+            decimals: 1
+            points_per_hour: 60
+            unit: ' '
+            show:
+              labels: false
+              points: false
+              state: true
+              fill: false
+            tap_action:
+              action: none
+            state_map:
+              - value: '005'
+                label: 'Off'
+            entities:
+              - entity: sensor.p1s_temperature_cible_de_la_buse
+                name: Target
+                state_adaptive_color: true
+                show_state: true
+                show_fill: true
+                show_line: true
+                font_size: 50
+                smooth: false
+              - entity: sensor.p1s_temperature_de_la_buse
+                name: Nozzle
+                state_adaptive_color: true
+                show_state: true
+                show_fill: false
+            hours_to_show: 6
+            grid_options:
+              columns: 6
+          - type: custom:mini-graph-card
+            name: Bed Temp.
+            line_width: 7
+            font_size: 60
+            animate: true
+            decimals: 1
+            points_per_hour: 60
+            unit: ' '
+            show:
+              labels: false
+              points: false
+              state: true
+              fill: false
+            tap_action:
+              action: none
+            state_map:
+              - value: '005'
+                label: 'Off'
+            entities:
+              - entity: sensor.p1s_temperature_cible_du_lit
+                name: Target
+                state_adaptive_color: true
+                show_state: true
+                show_fill: true
+                show_line: true
+                font_size: 50
+                smooth: false
+              - entity: sensor.p1s_temperature_du_lit
+                name: Bed
+                state_adaptive_color: true
+                show_state: true
+                show_fill: false
+            hours_to_show: 6
+            grid_options:
+              columns: 6
+      - type: grid
+        cards:
+          - type: heading
+            icon: fas:temperature-half
+            heading: Temperature History
+            heading_style: subtitle
+          - chart_type: line
+            period: 5minute
+            type: statistics-graph
+            entities:
+              - entity: sensor.p1s_temperature_de_la_buse
+                name: Nozzle
+              - entity: sensor.p1s_temperature_du_lit
+                name: Bed
+            stat_types:
+              - mean
+            days_to_show: 0.2
+          - type: heading
+            icon: mdi:fan
+            heading: Fans
+            heading_style: subtitle
+          - chart_type: line
+            period: 5minute
+            type: statistics-graph
+            entities:
+              - entity: sensor.p1s_vitesse_du_ventilateur_auxiliaire
+                name: Aux
+              - entity: sensor.p1s_vitesse_du_ventilateur_de_refroidissement
+                name: Cooling
+              - entity: sensor.p1s_ventilateur_de_la_chambre_speed
+                name: Chamber
+              - entity: sensor.p1s_vitesse_du_ventilateur_de_l_isolateur_thermique
+                name: Heat Break
+            stat_types:
+              - mean
+            days_to_show: 0.2
+            logarithmic_scale: false
+          - type: heading
+            icon: fas:triangle-exclamation
+            heading: Errors History
+            heading_style: subtitle
+          - type: custom:multiple-logbook-card
+            entities:
+              - entity: binary_sensor.p1s_erreur_d_impression
+                attributes:
+                  - value: code
+                  - value: error
+                hidden_state:
+                  - 'off'
+                  - unavailable
+              - entity: binary_sensor.p1s_erreurs_hms
+                attributes:
+                  - value: 1-Code
+                    label: Code
+                  - value: 1-Error
+                    label: Error
+                  - value: 1-Wiki
+                    label: Wiki
+                    type: url
+                    link_label: Click to visit
+                  - value: count
+                hidden_state:
+                  - 'off'
+                  - unavailable
+            show:
+              state: false
+              duration: true
+              start_date: true
+              end_date: false
+              icon: true
+              separator: true
+              entity_name: true
+            custom_logs: false
+            grid_options:
+              columns: 12
+    subview: true
+    cards: []
+    badges: []
+    top_margin: false
+    header:
+      layout: responsive
+      badges_position: bottom
